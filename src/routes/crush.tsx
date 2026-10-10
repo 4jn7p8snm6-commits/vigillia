@@ -93,7 +93,7 @@ function parseWhatsApp(text: string) {
   for (const line of text.split(/\r?\n/)) {
     const m = line.match(re);
     if (!m) continue;
-    const name = m[1].trim();
+    const name = (m[1] ?? "").trim();
     counts[name] = (counts[name] || 0) + 1;
     if (name !== prev) starts[name] = (starts[name] || 0) + 1;
     prev = name;
