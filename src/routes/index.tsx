@@ -224,6 +224,9 @@ function Index() {
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs">
+            <a href="/crush" className="rounded-full border border-border px-3 py-1 font-medium hover:bg-muted">
+              💬 Analyse crush
+            </a>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium ${
                 monitoring
