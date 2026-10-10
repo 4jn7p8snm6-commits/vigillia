@@ -77,7 +77,7 @@ export async function analyzeFrame(imageDataUrl: string, request: Request): Prom
           role: "user",
           content: [
             { type: "text", text: "Analyse cette image de surveillance et détecte tout incendie ou inondation." },
-            { type: "image", image: base64 },
+            { type: "file", data: base64, mediaType: "image/jpeg" },
           ],
         },
       ],
