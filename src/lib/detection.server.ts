@@ -51,7 +51,7 @@ Règles :
 - resume : une phrase en français résumant l'état général de la scène.`;
 
 export async function analyzeFrame(imageDataUrl: string, request: Request): Promise<DetectionResult> {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) {
     throw new Error("Clé Lovable AI manquante côté serveur.");
   }
