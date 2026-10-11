@@ -184,9 +184,24 @@ function Index() {
     }
   }, []);
 
-  const startMonitoring = () => {
-    if (!cameraOn) return;
+  const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
+
+  const requestWakeLock = async () => {
+    try {
+      const nav = navigator as Navigator & {
+        wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> };
+      };
+      if (nav.wakeLock) wakeLockRef.current = await nav.wakeLock.request("screen");
+    } catch {
+      // non pris en charge
+    }
+  };
+
+  const beginMonitoringLoop = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
     setMonitoring(true);
+    localStorage.setItem("vigilia-auto", "1");
+    void requestWakeLock();
     const tick = () => {
       const frame = captureFrame();
       if (frame) void runAnalysis(frame);
@@ -194,6 +209,34 @@ function Index() {
     tick();
     timerRef.current = setInterval(tick, ANALYSIS_INTERVAL_MS);
   };
+
+  const startMonitoring = () => {
+    if (!cameraOn) return;
+    beginMonitoringLoop();
+  };
+
+  const manualStop = () => {
+    localStorage.removeItem("vigilia-auto");
+    void wakeLockRef.current?.release();
+    wakeLockRef.current = null;
+    stopMonitoring();
+  };
+
+  // Mode 24/7 : reprise automatique à l'ouverture et au retour au premier plan
+  useEffect(() => {
+    const resume = async () => {
+      if (localStorage.getItem("vigilia-auto") !== "1") return;
+      if (document.visibilityState !== "visible") return;
+      if (!streamRef.current || !streamRef.current.active) {
+        await startCamera();
+      }
+      if (streamRef.current?.active) beginMonitoringLoop();
+    };
+    void resume();
+    document.addEventListener("visibilitychange", resume);
+    return () => document.removeEventListener("visibilitychange", resume);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
