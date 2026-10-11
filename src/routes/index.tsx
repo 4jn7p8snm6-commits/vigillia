@@ -438,25 +438,26 @@ function Index() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 border-t border-border p-4">
-                {!cameraOn ? (
-                  <button
-                    onClick={startCamera}
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                  >
-                    <Camera className="h-4 w-4" />
-                    Activer la caméra
-                  </button>
-                ) : (
-                  <button
-                    onClick={stopCamera}
-                    className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent"
-                  >
-                    <CameraOff className="h-4 w-4" />
-                    Couper la caméra
-                  </button>
-                )}
+                {sourceMode === "webcam" &&
+                  (!cameraOn ? (
+                    <button
+                      onClick={startCamera}
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                      <Camera className="h-4 w-4" />
+                      Activer la caméra
+                    </button>
+                  ) : (
+                    <button
+                      onClick={stopCamera}
+                      className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                    >
+                      <CameraOff className="h-4 w-4" />
+                      Couper la caméra
+                    </button>
+                  ))}
 
-                {cameraOn &&
+                {(sourceMode === "ipcam" || cameraOn) &&
                   (!monitoring ? (
                     <button
                       onClick={startMonitoring}
