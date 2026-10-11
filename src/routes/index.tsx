@@ -85,12 +85,18 @@ function ConfidenceBar({ label, value, danger }: { label: string; value: number;
   );
 }
 
+type SourceMode = "webcam" | "ipcam";
+
 function Index() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const busyRef = useRef(false);
+  const ipUrlRef = useRef("");
 
+  const [sourceMode, setSourceMode] = useState<SourceMode>("webcam");
+  const [ipUrl, setIpUrl] = useState("");
+  const [ipPreview, setIpPreview] = useState<string | null>(null);
   const [cameraOn, setCameraOn] = useState(false);
   const [monitoring, setMonitoring] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
