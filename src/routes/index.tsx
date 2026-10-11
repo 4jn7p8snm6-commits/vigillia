@@ -252,7 +252,7 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
@@ -364,7 +364,7 @@ function Index() {
                     </button>
                   ) : (
                     <button
-                      onClick={stopMonitoring}
+                      onClick={manualStop}
                       className="inline-flex items-center gap-2 rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-danger-foreground transition-colors hover:bg-danger/90"
                     >
                       Arrêter la surveillance
