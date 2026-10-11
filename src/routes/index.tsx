@@ -369,17 +369,58 @@ function Index() {
         <div className="grid gap-6 lg:grid-cols-3">
           <section className="lg:col-span-2">
             <div className="overflow-hidden rounded-xl border border-border bg-card">
+              <div className="flex border-b border-border">
+                <button
+                  onClick={() => setSourceMode("webcam")}
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    sourceMode === "webcam"
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  Caméra de l'appareil
+                </button>
+                <button
+                  onClick={() => setSourceMode("ipcam")}
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    sourceMode === "ipcam"
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  Caméra IP (24/7)
+                </button>
+              </div>
+              {sourceMode === "ipcam" && (
+                <div className="border-b border-border p-3">
+                  <input
+                    type="url"
+                    value={ipUrl}
+                    onChange={(e) => setIpUrl(e.target.value)}
+                    placeholder="URL de l'image de la caméra, ex. http://192.168.1.50/snapshot.jpg"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Indiquez l'adresse d'une image (snapshot) de votre caméra IP. L'URL est mémorisée et la surveillance reprend toute seule.
+                  </p>
+                </div>
+              )}
               <div className="relative aspect-video bg-secondary scanline">
                 <video
                   ref={videoRef}
                   playsInline
                   muted
-                  className={`h-full w-full object-cover ${cameraOn ? "" : "hidden"}`}
+                  className={`h-full w-full object-cover ${sourceMode === "webcam" && cameraOn ? "" : "hidden"}`}
                 />
-                {!cameraOn && (
+                {sourceMode === "ipcam" && ipPreview && (
+                  <img src={ipPreview} alt="Flux caméra IP" className="h-full w-full object-cover" />
+                )}
+                {(!cameraOn || (sourceMode === "ipcam" && !ipPreview)) && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground">
                     <CameraOff className="h-10 w-10" />
-                    <p className="text-sm">Caméra désactivée</p>
+                    <p className="text-sm">
+                      {sourceMode === "ipcam" ? "En attente du flux de la caméra IP…" : "Caméra désactivée"}
+                    </p>
                   </div>
                 )}
                 {analyzing && (
