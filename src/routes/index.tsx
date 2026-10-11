@@ -85,12 +85,18 @@ function ConfidenceBar({ label, value, danger }: { label: string; value: number;
   );
 }
 
+type SourceMode = "webcam" | "ipcam";
+
 function Index() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const busyRef = useRef(false);
+  const ipUrlRef = useRef("");
 
+  const [sourceMode, setSourceMode] = useState<SourceMode>("webcam");
+  const [ipUrl, setIpUrl] = useState("");
+  const [ipPreview, setIpPreview] = useState<string | null>(null);
   const [cameraOn, setCameraOn] = useState(false);
   const [monitoring, setMonitoring] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -115,8 +121,37 @@ function Index() {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    setIpPreview(null);
     setCameraOn(false);
   }, [stopMonitoring]);
+
+  // Récupère une image depuis l'URL d'une caméra IP (snapshot JPEG)
+  const captureIpFrame = useCallback(async (): Promise<string | null> => {
+    const url = ipUrlRef.current.trim();
+    if (!url) return null;
+    try {
+      const bust = (url.includes("?") ? "&" : "?") + "_t=" + Date.now();
+      const res = await fetch(url + bust);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      if (!blob.type.startsWith("image/")) throw new Error("La réponse n'est pas une image");
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      setIpPreview(dataUrl);
+      return dataUrl;
+    } catch (e) {
+      setCameraError(
+        "Caméra IP injoignable : " +
+          (e instanceof Error ? e.message : "erreur réseau") +
+          ". Vérifiez l'URL et que la caméra autorise l'accès (CORS).",
+      );
+      return null;
+    }
+  }, []);
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 
@@ -197,22 +232,35 @@ function Index() {
     }
   };
 
-  const beginMonitoringLoop = () => {
+  const beginMonitoringLoop = (mode: SourceMode) => {
     if (timerRef.current) clearInterval(timerRef.current);
     setMonitoring(true);
     localStorage.setItem("vigilia-auto", "1");
+    localStorage.setItem("vigilia-mode", mode);
     void requestWakeLock();
-    const tick = () => {
-      const frame = captureFrame();
+    const tick = async () => {
+      const frame = mode === "ipcam" ? await captureIpFrame() : captureFrame();
       if (frame) void runAnalysis(frame);
     };
-    tick();
-    timerRef.current = setInterval(tick, ANALYSIS_INTERVAL_MS);
+    void tick();
+    timerRef.current = setInterval(() => void tick(), ANALYSIS_INTERVAL_MS);
   };
 
   const startMonitoring = () => {
-    if (!cameraOn) return;
-    beginMonitoringLoop();
+    if (sourceMode === "webcam") {
+      if (!cameraOn) return;
+      beginMonitoringLoop("webcam");
+    } else {
+      if (!ipUrl.trim()) {
+        setCameraError("Indiquez l'URL de votre caméra IP (ex. http://192.168.1.50/snapshot.jpg).");
+        return;
+      }
+      setCameraError(null);
+      ipUrlRef.current = ipUrl;
+      localStorage.setItem("vigilia-ipurl", ipUrl.trim());
+      setCameraOn(true);
+      beginMonitoringLoop("ipcam");
+    }
   };
 
   const manualStop = () => {
@@ -224,13 +272,27 @@ function Index() {
 
   // Mode 24/7 : reprise automatique à l'ouverture et au retour au premier plan
   useEffect(() => {
+    const savedUrl = localStorage.getItem("vigilia-ipurl");
+    if (savedUrl) {
+      setIpUrl(savedUrl);
+      ipUrlRef.current = savedUrl;
+    }
     const resume = async () => {
       if (localStorage.getItem("vigilia-auto") !== "1") return;
       if (document.visibilityState !== "visible") return;
+      const mode = (localStorage.getItem("vigilia-mode") as SourceMode) || "webcam";
+      setSourceMode(mode);
+      if (mode === "ipcam") {
+        if (ipUrlRef.current) {
+          setCameraOn(true);
+          beginMonitoringLoop("ipcam");
+        }
+        return;
+      }
       if (!streamRef.current || !streamRef.current.active) {
         await startCamera();
       }
-      if (streamRef.current?.active) beginMonitoringLoop();
+      if (streamRef.current?.active) beginMonitoringLoop("webcam");
     };
     void resume();
     document.addEventListener("visibilitychange", resume);
@@ -307,17 +369,58 @@ function Index() {
         <div className="grid gap-6 lg:grid-cols-3">
           <section className="lg:col-span-2">
             <div className="overflow-hidden rounded-xl border border-border bg-card">
+              <div className="flex border-b border-border">
+                <button
+                  onClick={() => setSourceMode("webcam")}
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    sourceMode === "webcam"
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  Caméra de l'appareil
+                </button>
+                <button
+                  onClick={() => setSourceMode("ipcam")}
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    sourceMode === "ipcam"
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  Caméra IP (24/7)
+                </button>
+              </div>
+              {sourceMode === "ipcam" && (
+                <div className="border-b border-border p-3">
+                  <input
+                    type="url"
+                    value={ipUrl}
+                    onChange={(e) => setIpUrl(e.target.value)}
+                    placeholder="URL de l'image de la caméra, ex. http://192.168.1.50/snapshot.jpg"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Indiquez l'adresse d'une image (snapshot) de votre caméra IP. L'URL est mémorisée et la surveillance reprend toute seule.
+                  </p>
+                </div>
+              )}
               <div className="relative aspect-video bg-secondary scanline">
                 <video
                   ref={videoRef}
                   playsInline
                   muted
-                  className={`h-full w-full object-cover ${cameraOn ? "" : "hidden"}`}
+                  className={`h-full w-full object-cover ${sourceMode === "webcam" && cameraOn ? "" : "hidden"}`}
                 />
-                {!cameraOn && (
+                {sourceMode === "ipcam" && ipPreview && (
+                  <img src={ipPreview} alt="Flux caméra IP" className="h-full w-full object-cover" />
+                )}
+                {(!cameraOn || (sourceMode === "ipcam" && !ipPreview)) && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground">
                     <CameraOff className="h-10 w-10" />
-                    <p className="text-sm">Caméra désactivée</p>
+                    <p className="text-sm">
+                      {sourceMode === "ipcam" ? "En attente du flux de la caméra IP…" : "Caméra désactivée"}
+                    </p>
                   </div>
                 )}
                 {analyzing && (
@@ -335,25 +438,26 @@ function Index() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 border-t border-border p-4">
-                {!cameraOn ? (
-                  <button
-                    onClick={startCamera}
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                  >
-                    <Camera className="h-4 w-4" />
-                    Activer la caméra
-                  </button>
-                ) : (
-                  <button
-                    onClick={stopCamera}
-                    className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent"
-                  >
-                    <CameraOff className="h-4 w-4" />
-                    Couper la caméra
-                  </button>
-                )}
+                {sourceMode === "webcam" &&
+                  (!cameraOn ? (
+                    <button
+                      onClick={startCamera}
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                      <Camera className="h-4 w-4" />
+                      Activer la caméra
+                    </button>
+                  ) : (
+                    <button
+                      onClick={stopCamera}
+                      className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                    >
+                      <CameraOff className="h-4 w-4" />
+                      Couper la caméra
+                    </button>
+                  ))}
 
-                {cameraOn &&
+                {(sourceMode === "ipcam" || cameraOn) &&
                   (!monitoring ? (
                     <button
                       onClick={startMonitoring}
