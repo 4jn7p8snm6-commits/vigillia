@@ -121,8 +121,37 @@ function Index() {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    setIpPreview(null);
     setCameraOn(false);
   }, [stopMonitoring]);
+
+  // Récupère une image depuis l'URL d'une caméra IP (snapshot JPEG)
+  const captureIpFrame = useCallback(async (): Promise<string | null> => {
+    const url = ipUrlRef.current.trim();
+    if (!url) return null;
+    try {
+      const bust = (url.includes("?") ? "&" : "?") + "_t=" + Date.now();
+      const res = await fetch(url + bust);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      if (!blob.type.startsWith("image/")) throw new Error("La réponse n'est pas une image");
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      setIpPreview(dataUrl);
+      return dataUrl;
+    } catch (e) {
+      setCameraError(
+        "Caméra IP injoignable : " +
+          (e instanceof Error ? e.message : "erreur réseau") +
+          ". Vérifiez l'URL et que la caméra autorise l'accès (CORS).",
+      );
+      return null;
+    }
+  }, []);
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 
