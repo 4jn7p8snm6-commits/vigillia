@@ -232,22 +232,35 @@ function Index() {
     }
   };
 
-  const beginMonitoringLoop = () => {
+  const beginMonitoringLoop = (mode: SourceMode) => {
     if (timerRef.current) clearInterval(timerRef.current);
     setMonitoring(true);
     localStorage.setItem("vigilia-auto", "1");
+    localStorage.setItem("vigilia-mode", mode);
     void requestWakeLock();
-    const tick = () => {
-      const frame = captureFrame();
+    const tick = async () => {
+      const frame = mode === "ipcam" ? await captureIpFrame() : captureFrame();
       if (frame) void runAnalysis(frame);
     };
-    tick();
-    timerRef.current = setInterval(tick, ANALYSIS_INTERVAL_MS);
+    void tick();
+    timerRef.current = setInterval(() => void tick(), ANALYSIS_INTERVAL_MS);
   };
 
   const startMonitoring = () => {
-    if (!cameraOn) return;
-    beginMonitoringLoop();
+    if (sourceMode === "webcam") {
+      if (!cameraOn) return;
+      beginMonitoringLoop("webcam");
+    } else {
+      if (!ipUrl.trim()) {
+        setCameraError("Indiquez l'URL de votre caméra IP (ex. http://192.168.1.50/snapshot.jpg).");
+        return;
+      }
+      setCameraError(null);
+      ipUrlRef.current = ipUrl;
+      localStorage.setItem("vigilia-ipurl", ipUrl.trim());
+      setCameraOn(true);
+      beginMonitoringLoop("ipcam");
+    }
   };
 
   const manualStop = () => {
@@ -259,13 +272,27 @@ function Index() {
 
   // Mode 24/7 : reprise automatique à l'ouverture et au retour au premier plan
   useEffect(() => {
+    const savedUrl = localStorage.getItem("vigilia-ipurl");
+    if (savedUrl) {
+      setIpUrl(savedUrl);
+      ipUrlRef.current = savedUrl;
+    }
     const resume = async () => {
       if (localStorage.getItem("vigilia-auto") !== "1") return;
       if (document.visibilityState !== "visible") return;
+      const mode = (localStorage.getItem("vigilia-mode") as SourceMode) || "webcam";
+      setSourceMode(mode);
+      if (mode === "ipcam") {
+        if (ipUrlRef.current) {
+          setCameraOn(true);
+          beginMonitoringLoop("ipcam");
+        }
+        return;
+      }
       if (!streamRef.current || !streamRef.current.active) {
         await startCamera();
       }
-      if (streamRef.current?.active) beginMonitoringLoop();
+      if (streamRef.current?.active) beginMonitoringLoop("webcam");
     };
     void resume();
     document.addEventListener("visibilitychange", resume);
