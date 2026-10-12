@@ -43,7 +43,7 @@ async function sendOne(
   }
 }
 
-export async function saveSubscription(s: { endpoint: string; p256dh: string; auth: string; label?: string }) {
+export async function saveSubscription(s: { endpoint: string; p256dh: string; auth: string; label?: string | undefined }) {
   const db = await admin();
   const { error } = await db
     .from("push_subscriptions")

@@ -55,7 +55,7 @@ export function NotificationSettings({ location: loc }: { location: string }) {
         (await reg.pushManager.getSubscription()) ??
         (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToUint8(VAPID_PUBLIC_KEY) }));
       const j = sub.toJSON();
-      await registerPush({ data: { endpoint: j.endpoint!, p256dh: j.keys!.p256dh, auth: j.keys!.auth, label: loc || undefined } });
+      await registerPush({ data: { endpoint: j.endpoint ?? "", p256dh: j.keys?.["p256dh"] ?? "", auth: j.keys?.["auth"] ?? "", label: loc || undefined } });
       setStatus("enabled");
       setMsg({ ok: true, text: "Notifications activées sur cet appareil." });
     } catch (e) {
