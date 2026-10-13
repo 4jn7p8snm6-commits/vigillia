@@ -17,27 +17,36 @@ export type Database = {
       alert_events: {
         Row: {
           created_at: string
+          failed_count: number
           id: string
+          is_test: boolean
           kind: string
           location: string | null
           sent_count: number
           severity: string
+          title: string | null
         }
         Insert: {
           created_at?: string
+          failed_count?: number
           id?: string
+          is_test?: boolean
           kind: string
           location?: string | null
           sent_count?: number
           severity: string
+          title?: string | null
         }
         Update: {
           created_at?: string
+          failed_count?: number
           id?: string
+          is_test?: boolean
           kind?: string
           location?: string | null
           sent_count?: number
           severity?: string
+          title?: string | null
         }
         Relationships: []
       }
