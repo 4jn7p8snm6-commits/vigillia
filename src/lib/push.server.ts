@@ -27,7 +27,7 @@ async function sendOne(
       message: {
         payload,
         adminContact: "mailto:alertes@vigillia.lovable.app",
-        options: { ttl: 3600, urgency: "high", topic: payload.tag.slice(0, 32).replace(/[^A-Za-z0-9_-]/g, "") },
+        options: { ttl: 3600, urgency: "high" },
       },
     });
     const res = await fetch(req.endpoint, { method: "POST", headers: req.headers, body: req.body });
