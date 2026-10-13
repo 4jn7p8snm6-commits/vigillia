@@ -18,7 +18,7 @@ function isPreviewContext() {
   return window.self !== window.top || h.startsWith("id-preview--") || h.startsWith("preview--") || h.endsWith("lovableproject.com");
 }
 
-export function NotificationSettings({ location: loc }: { location: string }) {
+export function NotificationSettings({ location: loc, onSent }: { location: string; onSent?: () => void }) {
   const [status, setStatus] = useState<Status>("checking");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -89,8 +89,10 @@ export function NotificationSettings({ location: loc }: { location: string }) {
       const sub = await reg?.pushManager.getSubscription();
       if (!sub) throw new Error("Activez d'abord les notifications.");
       await sendTestPush({ data: { endpoint: sub.endpoint } });
+      onSent?.();
       setMsg({ ok: true, text: "Notification de TEST envoyée réellement. Elle doit arriver dans quelques secondes." });
     } catch (e) {
+      onSent?.();
       setMsg({ ok: false, text: e instanceof Error ? e.message : "Échec de l'envoi." });
     } finally {
       setBusy(false);

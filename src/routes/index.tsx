@@ -12,6 +12,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { analyzeSurveillanceFrame } from "@/lib/detection.functions";
+import { NotificationSettings } from "@/components/NotificationSettings";
+import { NotificationHistory } from "@/components/NotificationHistory";
 import type { DetectionResult } from "@/lib/detection.server";
 
 export const Route = createFileRoute("/")({
@@ -104,6 +106,9 @@ function Index() {
   const [lastResult, setLastResult] = useState<DetectionResult | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [cameraLocation, setCameraLocation] = useState("");
+  const locationRef = useRef("");
+  const [historyKey, setHistoryKey] = useState(0);
 
   const alertActive =
     lastResult !== null && (lastResult.incendie.detecte || lastResult.inondation.detecte);
@@ -194,10 +199,13 @@ function Index() {
     setAnalyzing(true);
     setAnalysisError(null);
     try {
-      const result = await analyzeSurveillanceFrame({ data: { image } });
+      const result = await analyzeSurveillanceFrame({ data: { image, location: locationRef.current || undefined } });
       setLastResult(result);
       const alert = result.incendie.detecte || result.inondation.detecte;
-      if (alert) playAlertSound();
+      if (alert) {
+        playAlertSound();
+        setHistoryKey((k) => k + 1);
+      }
       setHistory((prev) =>
         [
           {
@@ -272,6 +280,9 @@ function Index() {
 
   // Mode 24/7 : reprise automatique à l'ouverture et au retour au premier plan
   useEffect(() => {
+    const savedLoc = localStorage.getItem("vigilia-location") ?? "";
+    setCameraLocation(savedLoc);
+    locationRef.current = savedLoc;
     const savedUrl = localStorage.getItem("vigilia-ipurl");
     if (savedUrl) {
       setIpUrl(savedUrl);
@@ -563,6 +574,25 @@ function Index() {
             )}
           </section>
 
+          <div className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <label htmlFor="cam-location" className="text-sm font-semibold">Lieu de la caméra</label>
+            <input
+              id="cam-location"
+              value={cameraLocation}
+              maxLength={80}
+              onChange={(e) => {
+                setCameraLocation(e.target.value);
+                locationRef.current = e.target.value;
+                localStorage.setItem("vigilia-location", e.target.value);
+              }}
+              placeholder="Ex : Entrepôt nord, Garage…"
+              className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Indiqué dans chaque notification d'alerte.</p>
+          </div>
+          <NotificationSettings location={cameraLocation} onSent={() => setHistoryKey((k) => k + 1)} />
+          <NotificationHistory refreshKey={historyKey} />
           <aside className="rounded-xl border border-border bg-card">
             <div className="flex items-center justify-between border-b border-border p-4">
               <h2 className="font-semibold">Historique des analyses</h2>
@@ -608,6 +638,7 @@ function Index() {
               )}
             </div>
           </aside>
+          </div>
         </div>
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
