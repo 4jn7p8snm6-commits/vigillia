@@ -30,3 +30,8 @@ export const sendTestPush = createServerFn({ method: "POST" })
     const { sendTest } = await import("./push.server");
     return sendTest(data.endpoint);
   });
+
+export const getNotificationHistory = createServerFn({ method: "GET" }).handler(async () => {
+  const { listHistory } = await import("./push.server");
+  return listHistory();
+});

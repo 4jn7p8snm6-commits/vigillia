@@ -67,6 +67,7 @@ export async function sendTest(endpoint: string) {
     body: `Notification de test (aucun danger réel). Heure : ${heure}`,
     tag: "vigillia-test",
   });
+  await db.from("alert_events").insert({ kind: "test", severity: "Test", title: "🧪 TEST — VigillIA", is_test: true, sent_count: r === "ok" ? 1 : 0, failed_count: r === "ok" ? 0 : 1 });
   if (r === "gone") {
     await removeSubscription(endpoint);
     throw new Error("Abonnement expiré. Réactivez les notifications.");
@@ -103,12 +104,24 @@ export async function notifyDetection(result: DetectionResult, location?: string
     const body = [`Gravité : ${severity} (${Math.round(ev.conf * 100)} %)`, `Heure : ${heure}`, loc ? `Lieu : ${loc}` : null, ev.desc].filter(Boolean).join("\n");
 
     let sent = 0;
+    let failed = 0;
     for (const s of subs) {
       const r = await sendOne(s, { title, body, tag: `vigillia-${kind}`, url: "/" });
       if (r === "ok") sent++;
+      else failed++;
       if (r === "gone") await removeSubscription(s.endpoint);
     }
-    await db.from("alert_events").insert({ kind, location: loc, severity, sent_count: sent });
+    await db.from("alert_events").insert({ kind, location: loc, severity, title, sent_count: sent, failed_count: failed });
     if (both) break;
   }
+}
+
+export async function listHistory() {
+  const db = await admin();
+  const { data } = await db
+    .from("alert_events")
+    .select("id,kind,location,severity,title,sent_count,failed_count,is_test,created_at")
+    .order("created_at", { ascending: false })
+    .limit(30);
+  return data ?? [];
 }
