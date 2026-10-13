@@ -88,7 +88,7 @@ export async function notifyDetection(result: DetectionResult, location?: string
   const loc = location?.trim().slice(0, 80) || null;
   const since = new Date(Date.now() - DEDUPE_MINUTES * 60_000).toISOString();
   const { data: subs } = await db.from("push_subscriptions").select("endpoint,p256dh,auth");
-  if (!subs?.length) return;
+  const allSubs = subs ?? [];
 
   for (const ev of events) {
     const kind = both ? "critique" : ev.kind;
@@ -105,7 +105,7 @@ export async function notifyDetection(result: DetectionResult, location?: string
 
     let sent = 0;
     let failed = 0;
-    for (const s of subs) {
+    for (const s of allSubs) {
       const r = await sendOne(s, { title, body, tag: `vigillia-${kind}`, url: "/" });
       if (r === "ok") sent++;
       else failed++;
