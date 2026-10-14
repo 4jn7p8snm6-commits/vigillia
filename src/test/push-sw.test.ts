@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { describe, expect, it, vi } from "vitest";
@@ -7,7 +6,7 @@ const source = readFileSync(new URL("../../public/push-sw.js", import.meta.url),
 
 async function receive(payload: unknown, raw = false) {
   const handlers: Record<string, (event: unknown) => void> = {};
-  const showNotification = vi.fn().mockResolvedValue(undefined);
+  const showNotification = vi.fn<(title: string, options: { body: string; requireInteraction: boolean }) => Promise<void>>().mockResolvedValue(undefined);
   runInNewContext(source, {
     self: {
       addEventListener: (name: string, handler: (event: unknown) => void) => { handlers[name] = handler; },
@@ -25,7 +24,9 @@ async function receive(payload: unknown, raw = false) {
     waitUntil: (promise: Promise<unknown>) => { pending = promise; },
   });
   await pending;
-  return showNotification.mock.calls[0];
+  const call = showNotification.mock.calls[0];
+  if (!call) throw new Error("Notification was not displayed");
+  return call;
 }
 
 describe("Push display outside the app", () => {
