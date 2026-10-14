@@ -50,6 +50,84 @@ export type Database = {
         }
         Relationships: []
       }
+      detections: {
+        Row: {
+          created_at: string
+          fire: boolean
+          fire_conf: number
+          flood: boolean
+          flood_conf: number
+          id: string
+          image_path: string | null
+          location: string | null
+          severity: string | null
+          source: string
+          summary: string | null
+        }
+        Insert: {
+          created_at?: string
+          fire?: boolean
+          fire_conf?: number
+          flood?: boolean
+          flood_conf?: number
+          id?: string
+          image_path?: string | null
+          location?: string | null
+          severity?: string | null
+          source?: string
+          summary?: string | null
+        }
+        Update: {
+          created_at?: string
+          fire?: boolean
+          fire_conf?: number
+          flood?: boolean
+          flood_conf?: number
+          id?: string
+          image_path?: string | null
+          location?: string | null
+          severity?: string | null
+          source?: string
+          summary?: string | null
+        }
+        Relationships: []
+      }
+      monitor_settings: {
+        Row: {
+          camera_url: string | null
+          cron_token: string
+          enabled: boolean
+          id: number
+          last_run_at: string | null
+          last_status: string | null
+          location: string | null
+          threshold: number
+          updated_at: string
+        }
+        Insert: {
+          camera_url?: string | null
+          cron_token?: string
+          enabled?: boolean
+          id?: number
+          last_run_at?: string | null
+          last_status?: string | null
+          location?: string | null
+          threshold?: number
+          updated_at?: string
+        }
+        Update: {
+          camera_url?: string | null
+          cron_token?: string
+          enabled?: boolean
+          id?: number
+          last_run_at?: string | null
+          last_status?: string | null
+          location?: string | null
+          threshold?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string

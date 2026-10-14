@@ -11,14 +11,14 @@ export const analyzeSurveillanceFrame = createServerFn({ method: "POST" })
   .inputValidator(inputSchema)
   .handler(async ({ data }) => {
     const { analyzeFrame } = await import("./detection.server");
-    const result = await analyzeFrame(data.image, getRequest());
-    if (result.incendie.detecte || result.inondation.detecte) {
-      try {
-        const { notifyDetection } = await import("./push.server");
-        await notifyDetection(result, data.location);
-      } catch (e) {
-        console.error("Envoi des notifications échoué", e);
-      }
+    const { getSettings, applyThreshold, recordDetection } = await import("./monitor.server");
+    const raw = await analyzeFrame(data.image, getRequest());
+    const settings = await getSettings();
+    const result = applyThreshold(raw, settings.threshold);
+    try {
+      await recordDetection(result, data.image, data.location, "appareil");
+    } catch (e) {
+      console.error("Enregistrement de la détection échoué", e);
     }
     return result;
   });

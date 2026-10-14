@@ -14,6 +14,7 @@ import {
 import { analyzeSurveillanceFrame } from "@/lib/detection.functions";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { NotificationHistory } from "@/components/NotificationHistory";
+import { CloudMonitor } from "@/components/CloudMonitor";
 import type { DetectionResult } from "@/lib/detection.server";
 
 export const Route = createFileRoute("/")({
@@ -593,6 +594,7 @@ function Index() {
           </div>
           <NotificationSettings location={cameraLocation} onSent={() => setHistoryKey((k) => k + 1)} />
           <NotificationHistory refreshKey={historyKey} />
+          <CloudMonitor />
           <aside className="rounded-xl border border-border bg-card">
             <div className="flex items-center justify-between border-b border-border p-4">
               <h2 className="font-semibold">Historique des analyses</h2>
