@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Push senders include structured location, severity and event timestamp; the service worker formats these for display outside the app and accepts legacy message bodies to preserve existing subscriptions.
