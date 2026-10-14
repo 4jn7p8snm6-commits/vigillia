@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { describe, expect, it, vi } from "vitest";
 
-const source = readFileSync(new URL("../../public/push-sw.js", import.meta.url), "utf8");
+const source = readFileSync("public/push-sw.js", "utf8");
 
 async function receive(payload: unknown, raw = false) {
   const handlers: Record<string, (event: unknown) => void> = {};
