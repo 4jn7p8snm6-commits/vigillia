@@ -3,7 +3,10 @@ import type { DetectionResult } from "./detection.server";
 
 const DEDUPE_MINUTES = 10;
 
-type Payload = { title: string; body: string; tag: string; url?: string };
+type Payload = {
+  title: string; body: string; tag: string; url?: string;
+  location?: string | null; severity?: string; occurredAt?: string; description?: string;
+};
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -59,13 +62,17 @@ export async function removeSubscription(endpoint: string) {
 /** Envoie une notification de TEST uniquement à l'appareil demandeur (doit être enregistré). */
 export async function sendTest(endpoint: string) {
   const db = await admin();
-  const { data } = await db.from("push_subscriptions").select("endpoint,p256dh,auth").eq("endpoint", endpoint).maybeSingle();
+  const { data } = await db.from("push_subscriptions").select("endpoint,p256dh,auth,label").eq("endpoint", endpoint).maybeSingle();
   if (!data) throw new Error("Cet appareil n'est pas enregistré. Réactivez les notifications.");
   const heure = new Date().toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris" });
   const r = await sendOne(data, {
     title: "🧪 TEST — VigillIA",
     body: `Notification de test (aucun danger réel). Heure : ${heure}`,
     tag: "vigillia-test",
+    location: data.label,
+    severity: "TEST — aucun danger réel",
+    occurredAt: new Date().toISOString(),
+    description: "Notification de test (aucun danger réel).",
   });
   await db.from("alert_events").insert({ kind: "test", severity: "Test", title: "🧪 TEST — VigillIA", is_test: true, sent_count: r === "ok" ? 1 : 0, failed_count: r === "ok" ? 0 : 1 });
   if (r === "gone") {
@@ -106,7 +113,13 @@ export async function notifyDetection(result: DetectionResult, location?: string
     let sent = 0;
     let failed = 0;
     for (const s of allSubs) {
-      const r = await sendOne(s, { title, body, tag: `vigillia-${kind}`, url: "/" });
+      const r = await sendOne(s, {
+        title, body, tag: `vigillia-${kind}`, url: "/",
+        location: loc,
+        severity: `${severity} (${Math.round(ev.conf * 100)} %)`,
+        occurredAt: new Date().toISOString(),
+        description: ev.desc,
+      });
       if (r === "ok") sent++;
       else failed++;
       if (r === "gone") await removeSubscription(s.endpoint);
