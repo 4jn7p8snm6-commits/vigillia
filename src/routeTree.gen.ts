@@ -10,33 +10,54 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AlertesRouteImport } from './routes/alertes'
+import { Route as ApiPublicSurveillanceTickRouteImport } from './routes/api/public/surveillance-tick'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlertesRoute = AlertesRouteImport.update({
+  id: '/alertes',
+  path: '/alertes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSurveillanceTickRoute =
+  ApiPublicSurveillanceTickRouteImport.update({
+    id: '/api/public/surveillance-tick',
+    path: '/api/public/surveillance-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/alertes': typeof AlertesRoute
+  '/api/public/surveillance-tick': typeof ApiPublicSurveillanceTickRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/alertes': typeof AlertesRoute
+  '/api/public/surveillance-tick': typeof ApiPublicSurveillanceTickRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/alertes': typeof AlertesRoute
+  '/api/public/surveillance-tick': typeof ApiPublicSurveillanceTickRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/alertes' | '/api/public/surveillance-tick'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/alertes' | '/api/public/surveillance-tick'
+  id: '__root__' | '/' | '/alertes' | '/api/public/surveillance-tick'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlertesRoute: typeof AlertesRoute
+  ApiPublicSurveillanceTickRoute: typeof ApiPublicSurveillanceTickRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +69,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alertes': {
+      id: '/alertes'
+      path: '/alertes'
+      fullPath: '/alertes'
+      preLoaderRoute: typeof AlertesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/surveillance-tick': {
+      id: '/api/public/surveillance-tick'
+      path: '/api/public/surveillance-tick'
+      fullPath: '/api/public/surveillance-tick'
+      preLoaderRoute: typeof ApiPublicSurveillanceTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlertesRoute: AlertesRoute,
+  ApiPublicSurveillanceTickRoute: ApiPublicSurveillanceTickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
