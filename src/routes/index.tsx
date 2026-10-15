@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Flame,
@@ -10,11 +10,14 @@ import {
   AlertTriangle,
   Loader2,
   Trash2,
+  Globe,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { analyzeSurveillanceFrame } from "@/lib/detection.functions";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { NotificationHistory } from "@/components/NotificationHistory";
 import { CloudMonitor } from "@/components/CloudMonitor";
+import { DetectionDemo } from "@/components/DetectionDemo";
 import type { DetectionResult } from "@/lib/detection.server";
 
 export const Route = createFileRoute("/")({
@@ -358,6 +361,10 @@ function Index() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
+        <nav className="mb-5 flex flex-wrap gap-2" aria-label="Pages de VigillIA">
+          <Button variant="outline" size="sm" asChild><Link to="/carte"><Globe />Carte mondiale</Link></Button>
+          <Button variant="ghost" size="sm" asChild><Link to="/alertes"><AlertTriangle />Journal des alertes</Link></Button>
+        </nav>
         {alertActive && (
           <div className="mb-6 animate-pulse-alert rounded-xl border border-danger bg-danger/15 p-4">
             <div className="flex items-center gap-3">
@@ -573,6 +580,7 @@ function Index() {
                 </div>
               </div>
             )}
+            <DetectionDemo />
           </section>
 
           <div className="space-y-4">
