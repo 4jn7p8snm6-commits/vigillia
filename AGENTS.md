@@ -10,3 +10,5 @@
 <!-- LOVABLE:END -->
 
 - Push senders include structured location, severity and event timestamp; the service worker formats these for display outside the app and accepts legacy message bodies to preserve existing subscriptions.
+- Global events use a read-only NASA EONET server function with dated source links; they never trigger camera notifications or imply complete real-time coverage.
+- Leaflet is loaded lazily behind ClientOnly; shared event data stays browser-safe to prevent SSR access to browser globals.
