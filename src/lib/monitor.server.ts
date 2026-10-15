@@ -7,8 +7,9 @@ async function admin() {
 
 export async function getSettings() {
   const db = await admin();
-  const { data } = await db.from("monitor_settings").select("*").eq("id", 1).single();
-  return data!;
+  const { data, error } = await db.from("monitor_settings").select("*").eq("id", 1).single();
+  if (error || !data) throw new Error("Réglages de surveillance indisponibles.");
+  return data;
 }
 
 export async function publicSettings() {

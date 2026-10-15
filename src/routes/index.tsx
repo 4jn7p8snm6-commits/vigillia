@@ -17,6 +17,7 @@ import { analyzeSurveillanceFrame } from "@/lib/detection.functions";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { NotificationHistory } from "@/components/NotificationHistory";
 import { CloudMonitor } from "@/components/CloudMonitor";
+import { DetectionDemo } from "@/components/DetectionDemo";
 import type { DetectionResult } from "@/lib/detection.server";
 
 export const Route = createFileRoute("/")({
@@ -579,6 +580,7 @@ function Index() {
                 </div>
               </div>
             )}
+            <DetectionDemo />
           </section>
 
           <div className="space-y-4">

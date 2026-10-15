@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Cloud, Play, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useServerFn } from "@tanstack/react-start";
 import { getMonitorSettings, runMonitorNow, saveMonitorSettings } from "@/lib/monitor.functions";
 
 type S = Awaited<ReturnType<typeof getMonitorSettings>>;
 
 export function CloudMonitor() {
+  const fetchSettings = useServerFn(getMonitorSettings);
+  const persistSettings = useServerFn(saveMonitorSettings);
+  const runMonitor = useServerFn(runMonitorNow);
   const [s, setS] = useState<S | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const load = async () => setS(await getMonitorSettings());
+  const load = async () => setS(await fetchSettings());
   useEffect(() => { void load().catch(() => setMsg("Réglages indisponibles.")); }, []);
 
   if (!s) return <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">{msg ?? "Chargement…"}</div>;
@@ -18,7 +23,7 @@ export function CloudMonitor() {
   const save = async () => {
     setBusy(true); setMsg(null);
     try {
-      await saveMonitorSettings({ data: { camera_url: s.camera_url.trim(), location: s.location, enabled: s.enabled && !!s.camera_url.trim(), threshold: s.threshold } });
+      await persistSettings({ data: { camera_url: s.camera_url.trim(), location: s.location, enabled: s.enabled && !!s.camera_url.trim(), threshold: s.threshold } });
       setMsg("Réglages enregistrés.");
       await load();
     } catch { setMsg("Adresse invalide (doit commencer par http:// ou https://)."); }
@@ -26,7 +31,7 @@ export function CloudMonitor() {
   };
   const test = async () => {
     setBusy(true); setMsg("Analyse en cours…");
-    try { const r = await runMonitorNow(); setMsg(r.status === "inactive" ? "Ajoutez d'abord l'adresse de la caméra." : r.status); await load(); }
+    try { const r = await runMonitor(); setMsg(r.status === "inactive" ? "Ajoutez d'abord l'adresse de la caméra." : r.status); await load(); }
     catch { setMsg("Échec de l'analyse."); }
     setBusy(false);
   };
@@ -38,6 +43,7 @@ export function CloudMonitor() {
         <h2 className="text-sm font-semibold">Surveillance Cloud 24/7</h2>
       </div>
       <p className="text-xs text-muted-foreground">Le serveur analyse la caméra toutes les 2 minutes, même iPad éteint, et envoie les notifications.</p>
+      {!s.camera_url && <p className="text-xs text-warning">Prête à configurer · aucune caméra connectée, aucune surveillance en cours.</p>}
       <label className="block text-xs">Adresse de l'image de la caméra (accessible depuis internet)
         <input value={s.camera_url} onChange={(e) => setS({ ...s, camera_url: e.target.value })} placeholder="https://…/snapshot.jpg" maxLength={500}
           className="mt-1 w-full rounded-md border border-border bg-secondary px-2 py-1.5 text-sm" />
@@ -55,8 +61,8 @@ export function CloudMonitor() {
         Surveillance Cloud activée
       </label>
       <div className="flex gap-2">
-        <button onClick={() => void save()} disabled={busy} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-50"><Save className="h-3.5 w-3.5" />Enregistrer</button>
-        <button onClick={() => void test()} disabled={busy} className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs disabled:opacity-50"><Play className="h-3.5 w-3.5" />Analyser maintenant</button>
+        <Button onClick={() => void save()} disabled={busy} size="sm"><Save />Enregistrer</Button>
+        <Button onClick={() => void test()} disabled={busy || !s.camera_url} size="sm" variant="outline"><Play />Analyser maintenant</Button>
       </div>
       {msg && <p className="text-xs text-muted-foreground">{msg}</p>}
       {s.last_run_at && <p className="text-[11px] text-muted-foreground">Dernier passage : {new Date(s.last_run_at).toLocaleString("fr-FR")} — {s.last_status}</p>}
