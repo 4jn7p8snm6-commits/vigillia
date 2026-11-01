@@ -50,6 +50,30 @@ export type Database = {
         }
         Relationships: []
       }
+      detection_map_events: {
+        Row: {
+          id: string
+          kind: string
+          latitude: number
+          longitude: number
+          observed_at: string
+        }
+        Insert: {
+          id?: string
+          kind: string
+          latitude: number
+          longitude: number
+          observed_at: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          latitude?: number
+          longitude?: number
+          observed_at?: string
+        }
+        Relationships: []
+      }
       detections: {
         Row: {
           created_at: string
@@ -59,7 +83,9 @@ export type Database = {
           flood_conf: number
           id: string
           image_path: string | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           severity: string | null
           source: string
           summary: string | null
@@ -72,7 +98,9 @@ export type Database = {
           flood_conf?: number
           id?: string
           image_path?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           severity?: string | null
           source?: string
           summary?: string | null
@@ -85,7 +113,9 @@ export type Database = {
           flood_conf?: number
           id?: string
           image_path?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           severity?: string | null
           source?: string
           summary?: string | null
@@ -100,7 +130,9 @@ export type Database = {
           id: number
           last_run_at: string | null
           last_status: string | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           threshold: number
           updated_at: string
         }
@@ -111,7 +143,9 @@ export type Database = {
           id?: number
           last_run_at?: string | null
           last_status?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           threshold?: number
           updated_at?: string
         }
@@ -122,7 +156,9 @@ export type Database = {
           id?: number
           last_run_at?: string | null
           last_status?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           threshold?: number
           updated_at?: string
         }
