@@ -18,6 +18,10 @@ import { NotificationSettings } from "@/components/NotificationSettings";
 import { NotificationHistory } from "@/components/NotificationHistory";
 import { CloudMonitor } from "@/components/CloudMonitor";
 import { DetectionDemo } from "@/components/DetectionDemo";
+import { LocationPicker } from "@/components/LocationPicker";
+import { frameCoordinates, type Coordinates } from "@/lib/coordinates";
+import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import type { DetectionResult } from "@/lib/detection.server";
 
 export const Route = createFileRoute("/")({
@@ -94,6 +98,11 @@ function ConfidenceBar({ label, value, danger }: { label: string; value: number;
 type SourceMode = "webcam" | "ipcam";
 
 function Index() {
+  const analyze = useServerFn(analyzeSurveillanceFrame);
+  const queryClient = useQueryClient();
+  const [deviceCoordinates, setDeviceCoordinates] = useState<Coordinates | null>(null);
+  const [ipCoordinates, setIpCoordinates] = useState<Coordinates | null>(null);
+  const coordinatesRef = useRef<{ webcam: Coordinates | null; ipcam: Coordinates | null }>({ webcam: null, ipcam: null });
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -197,18 +206,19 @@ function Index() {
     return canvas.toDataURL("image/jpeg", 0.7);
   };
 
-  const runAnalysis = useCallback(async (image: string) => {
+  const runAnalysis = useCallback(async (image: string, source: SourceMode | "upload") => {
     if (busyRef.current) return;
     busyRef.current = true;
     setAnalyzing(true);
     setAnalysisError(null);
     try {
-      const result = await analyzeSurveillanceFrame({ data: { image, location: locationRef.current || undefined } });
+      const result = await analyze({ data: { image, location: locationRef.current || undefined, coordinates: frameCoordinates(source, source === "upload" ? null : coordinatesRef.current[source]) } });
       setLastResult(result);
       const alert = result.incendie.detecte || result.inondation.detecte;
       if (alert) {
         playAlertSound();
         setHistoryKey((k) => k + 1);
+        void queryClient.invalidateQueries({ queryKey: ["world-events"] });
       }
       setHistory((prev) =>
         [
@@ -229,7 +239,7 @@ function Index() {
       busyRef.current = false;
       setAnalyzing(false);
     }
-  }, []);
+  }, [analyze, queryClient]);
 
   const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
 
@@ -252,7 +262,7 @@ function Index() {
     void requestWakeLock();
     const tick = async () => {
       const frame = mode === "ipcam" ? await captureIpFrame() : captureFrame();
-      if (frame) void runAnalysis(frame);
+      if (frame) void runAnalysis(frame, mode);
     };
     void tick();
     timerRef.current = setInterval(() => void tick(), ANALYSIS_INTERVAL_MS);
@@ -324,7 +334,7 @@ function Index() {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
-    await runAnalysis(dataUrl);
+    await runAnalysis(dataUrl, "upload");
     event.target.value = "";
   };
 
@@ -599,6 +609,11 @@ function Index() {
               className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
             />
             <p className="mt-1 text-xs text-muted-foreground">Indiqué dans chaque notification d'alerte.</p>
+            <LocationPicker key={sourceMode} value={sourceMode === "webcam" ? deviceCoordinates : ipCoordinates} allowDevice={sourceMode === "webcam"} onChange={(coordinates) => {
+              coordinatesRef.current[sourceMode] = coordinates;
+              if (sourceMode === "webcam") setDeviceCoordinates(coordinates); else setIpCoordinates(coordinates);
+            }} />
+            <p className="mt-2 text-xs text-muted-foreground">Les photos importées ne prennent pas la position de cet appareil. Pour une caméra IP distante, saisissez sa position réelle.</p>
           </div>
           <NotificationSettings location={cameraLocation} onSent={() => setHistoryKey((k) => k + 1)} />
           <NotificationHistory refreshKey={historyKey} />

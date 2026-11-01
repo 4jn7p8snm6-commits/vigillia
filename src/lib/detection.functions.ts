@@ -1,10 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { coordinatesSchema } from "./coordinates";
 
 const inputSchema = z.object({
   image: z.string(),
   location: z.string().max(80).optional(),
+  coordinates: coordinatesSchema.optional(),
 });
 
 export const analyzeSurveillanceFrame = createServerFn({ method: "POST" })
@@ -16,7 +18,7 @@ export const analyzeSurveillanceFrame = createServerFn({ method: "POST" })
     const settings = await getSettings();
     const result = applyThreshold(raw, settings.threshold);
     try {
-      await recordDetection(result, data.image, data.location, "appareil");
+      await recordDetection(result, data.image, data.location, "appareil", data.coordinates);
     } catch (e) {
       console.error("Enregistrement de la détection échoué", e);
     }

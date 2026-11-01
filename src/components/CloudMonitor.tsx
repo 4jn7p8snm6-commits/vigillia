@@ -4,6 +4,7 @@ import { Cloud, Play, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
 import { getMonitorSettings, runMonitorNow, saveMonitorSettings } from "@/lib/monitor.functions";
+import { LocationPicker } from "./LocationPicker";
 
 type S = Awaited<ReturnType<typeof getMonitorSettings>>;
 
@@ -23,7 +24,7 @@ export function CloudMonitor() {
   const save = async () => {
     setBusy(true); setMsg(null);
     try {
-      await persistSettings({ data: { camera_url: s.camera_url.trim(), location: s.location, enabled: s.enabled && !!s.camera_url.trim(), threshold: s.threshold } });
+      await persistSettings({ data: { camera_url: s.camera_url.trim(), location: s.location, enabled: s.enabled && !!s.camera_url.trim(), threshold: s.threshold, coordinates: s.coordinates } });
       setMsg("Réglages enregistrés.");
       await load();
     } catch { setMsg("Adresse invalide (doit commencer par http:// ou https://)."); }
@@ -56,6 +57,7 @@ export function CloudMonitor() {
         <input type="range" min={0.3} max={0.95} step={0.05} value={s.threshold} onChange={(e) => setS({ ...s, threshold: Number(e.target.value) })} className="mt-1 w-full" />
         <span className="flex justify-between text-[10px] text-muted-foreground"><span>Plus vigilant</span><span>Moins de fausses alertes</span></span>
       </label>
+      <LocationPicker value={s.coordinates} onChange={(coordinates) => setS({ ...s, coordinates })} />
       <label className="flex items-center gap-2 text-xs">
         <input type="checkbox" checked={s.enabled} onChange={(e) => setS({ ...s, enabled: e.target.checked })} />
         Surveillance Cloud activée

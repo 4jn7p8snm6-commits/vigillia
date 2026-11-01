@@ -16,7 +16,7 @@ export default function WorldMap({ events, selected, onSelect }: { events: World
     <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
     <FocusEvent event={selected} />
     {events.map((event) => <CircleMarker key={event.id} center={[event.latitude, event.longitude]} radius={selected?.id === event.id ? 10 : 6} pathOptions={{ className: event.kind === "wildfires" ? "map-fire" : "map-flood" }} eventHandlers={{ click: () => onSelect(event) }}>
-      <Popup><strong>{event.title}</strong><br />{event.kind === "wildfires" ? "Incendie" : "Inondation"}<br />Observation : {new Date(event.date).toLocaleString("fr-FR")}<br />{event.sourceUrl && <a href={event.sourceUrl} target="_blank" rel="noopener noreferrer">Consulter la source</a>}</Popup>
+      <Popup><strong>{event.title}</strong><br />{event.kind === "wildfires" ? "Incendie" : "Inondation"}<br />Observation : {new Date(event.date).toLocaleString("fr-FR")}<br />{event.origin === "vigillia" && <>Détection IA non confirmée · position approximative<br /></>}{event.sourceUrl && <a href={event.sourceUrl} target="_blank" rel="noopener noreferrer">Consulter la source</a>}</Popup>
     </CircleMarker>)}
   </MapContainer>;
 }
