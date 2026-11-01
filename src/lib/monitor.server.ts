@@ -1,4 +1,5 @@
 import type { DetectionResult } from "./detection.server";
+import type { Coordinates } from "./coordinates";
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -21,14 +22,15 @@ export async function publicSettings() {
     threshold: s.threshold,
     last_run_at: s.last_run_at,
     last_status: s.last_status,
+    coordinates: s.latitude !== null && s.longitude !== null ? { latitude: s.latitude, longitude: s.longitude } : null,
   };
 }
 
-export async function updateSettings(v: { camera_url: string; location: string; enabled: boolean; threshold: number }) {
+export async function updateSettings(v: { camera_url: string; location: string; enabled: boolean; threshold: number; coordinates?: Coordinates | null }) {
   const db = await admin();
   const { error } = await db
     .from("monitor_settings")
-    .update({ camera_url: v.camera_url || null, location: v.location || null, enabled: v.enabled, threshold: v.threshold, updated_at: new Date().toISOString() })
+    .update({ camera_url: v.camera_url || null, location: v.location || null, enabled: v.enabled, threshold: v.threshold, latitude: v.coordinates?.latitude ?? null, longitude: v.coordinates?.longitude ?? null, updated_at: new Date().toISOString() })
     .eq("id", 1);
   if (error) throw new Error("Impossible d'enregistrer les réglages.");
 }
@@ -43,7 +45,7 @@ export function applyThreshold(r: DetectionResult, threshold: number): Detection
 }
 
 /** Enregistre la photo + la détection, puis envoie les notifications. */
-export async function recordDetection(r: DetectionResult, base64: string, location: string | undefined, source: string) {
+export async function recordDetection(r: DetectionResult, base64: string, location: string | undefined, source: string, coordinates?: Coordinates) {
   if (!r.incendie.detecte && !r.inondation.detecte) return;
   const db = await admin();
   const path = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.jpg`;
@@ -52,7 +54,7 @@ export async function recordDetection(r: DetectionResult, base64: string, locati
   const maxConf = Math.max(r.incendie.detecte ? r.incendie.confiance : 0, r.inondation.detecte ? r.inondation.confiance : 0);
   const both = r.incendie.detecte && r.inondation.detecte;
   const severity = both || maxConf >= 0.85 ? "CRITIQUE" : maxConf >= 0.7 ? "Élevée" : "Modérée";
-  await db.from("detections").insert({
+  const saved = await db.from("detections").insert({
     source,
     location: location?.trim().slice(0, 80) || null,
     fire: r.incendie.detecte,
@@ -62,7 +64,10 @@ export async function recordDetection(r: DetectionResult, base64: string, locati
     severity,
     summary: r.resume,
     image_path: up.error ? null : path,
+    latitude: coordinates?.latitude ?? null,
+    longitude: coordinates?.longitude ?? null,
   });
+  if (saved.error) throw new Error("Enregistrement de l’alerte impossible.");
   try {
     const { notifyDetection } = await import("./push.server");
     await notifyDetection(r, location);
@@ -103,7 +108,7 @@ export async function runTick(force = false) {
     const { analyzeFrame } = await import("./detection.server");
     const raw = await analyzeFrame(base64, new Request("https://vigillia.lovable.app"));
     const r = applyThreshold(raw, s.threshold);
-    await recordDetection(r, base64, s.location ?? undefined, "cloud");
+    await recordDetection(r, base64, s.location ?? undefined, "cloud", s.latitude !== null && s.longitude !== null ? { latitude: s.latitude, longitude: s.longitude } : undefined);
     status = r.incendie.detecte || r.inondation.detecte ? `Danger détecté : ${r.resume}` : `OK — ${r.resume}`;
   } catch (e) {
     status = `Erreur : ${e instanceof Error ? e.message : "inconnue"}`;

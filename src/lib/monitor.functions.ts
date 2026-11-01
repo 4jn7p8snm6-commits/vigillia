@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { coordinatesSchema } from "./coordinates";
 
 export const getMonitorSettings = createServerFn({ method: "GET" }).handler(async () => {
   const { publicSettings } = await import("./monitor.server");
@@ -13,6 +14,7 @@ export const saveMonitorSettings = createServerFn({ method: "POST" })
       location: z.string().max(80),
       enabled: z.boolean(),
       threshold: z.number().min(0.3).max(0.95),
+      coordinates: coordinatesSchema.nullable().optional(),
     }),
   )
   .handler(async ({ data }) => {
