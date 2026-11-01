@@ -6,6 +6,7 @@ export type WorldEvent = {
   latitude: number;
   longitude: number;
   sourceUrl: string | null;
+  origin?: "nasa" | "vigillia";
 };
 
 export function parseWorldEvents(input: unknown): WorldEvent[] {
@@ -19,4 +20,11 @@ export function parseWorldEvents(input: unknown): WorldEvent[] {
     const source = event.sources?.find((s: { url?: string }) => s.url?.startsWith("https://"));
     return [{ id: event.id, title: event.title, kind, date: geometry.date, longitude: geometry.coordinates[0], latitude: geometry.coordinates[1], sourceUrl: source?.url ?? null }];
   }).sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+}
+
+export function parseDetectionMapEvents(rows: { id: string; kind: string; observed_at: string; latitude: number; longitude: number }[]): WorldEvent[] {
+  return rows.flatMap((row) => {
+    if ((row.kind !== "wildfires" && row.kind !== "floods") || !Number.isFinite(row.latitude) || !Number.isFinite(row.longitude) || Math.abs(row.latitude) > 90 || Math.abs(row.longitude) > 180 || !Number.isFinite(Date.parse(row.observed_at))) return [];
+    return [{ id: `vigillia-${row.id}`, title: row.kind === "wildfires" ? "Incendie détecté · VigillIA" : "Inondation détectée · VigillIA", kind: row.kind, date: row.observed_at, latitude: row.latitude, longitude: row.longitude, sourceUrl: null, origin: "vigillia" as const }];
+  });
 }
