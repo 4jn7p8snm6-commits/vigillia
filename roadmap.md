@@ -1,6 +1,7 @@
 ## VigillIA
-- [ ] Finaliser et vérifier la surveillance Cloud programmée sans caméra connectée.
-- [ ] Vérifier le journal avec photos et le réglage de sensibilité.
-- [ ] Ajouter une carte mondiale d’incendies et d’inondations à partir de données réelles, datées et sourcées.
-- [ ] Vérifier l’affichage et les interactions sur téléphone et iPad.
-- [ ] Alertes email : vérifier le domaine d’expédition ; bloqué si aucun domaine n’est configuré.
+- [x] Carte mondiale d'incendies et d'inondations (NASA EONET), centrée sur Grande Canarie.
+- [x] Publication des derniers ajouts (carte, journal des alertes, surveillance Cloud, seuil, photos).
+- [ ] Vérifier le journal avec photos et le réglage de sensibilité sur un vrai appareil.
+- [ ] Vérifier l'affichage et les interactions sur téléphone et iPad.
+- [ ] Tester la surveillance Cloud programmée dès qu'une caméra IP sera connectée.
+- [ ] Alertes email : bloquées tant qu'aucun domaine d'expédition n'est configuré.
