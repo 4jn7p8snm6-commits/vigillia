@@ -24,7 +24,7 @@ export function CloudMonitor() {
   const save = async () => {
     setBusy(true); setMsg(null);
     try {
-      await persistSettings({ data: { camera_url: s.camera_url.trim(), location: s.location, enabled: s.enabled && !!s.camera_url.trim(), threshold: s.threshold, coordinates: s.coordinates } });
+      await persistSettings({ data: { camera_url: s.camera_url.trim(), location: s.location, enabled: s.enabled && !!s.camera_url.trim(), threshold: s.threshold, coordinates: s.coordinates, zone_radius_m: s.zone_radius_m } });
       setMsg("Réglages enregistrés.");
       await load();
     } catch { setMsg("Adresse invalide (doit commencer par http:// ou https://)."); }
@@ -58,6 +58,7 @@ export function CloudMonitor() {
         <span className="flex justify-between text-[10px] text-muted-foreground"><span>Plus vigilant</span><span>Moins de fausses alertes</span></span>
       </label>
       <LocationPicker value={s.coordinates} onChange={(coordinates) => setS({ ...s, coordinates })} />
+      <label className="block text-xs">Rayon de la zone surveillée (m)<input type="number" min={10} max={10000} value={s.zone_radius_m} onChange={(e) => setS({ ...s, zone_radius_m: Number(e.target.value) })} className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5" /></label>
       <label className="flex items-center gap-2 text-xs">
         <input type="checkbox" checked={s.enabled} onChange={(e) => setS({ ...s, enabled: e.target.checked })} />
         Surveillance Cloud activée
