@@ -21,7 +21,10 @@ import { DetectionDemo } from "@/components/DetectionDemo";
 import { LocationPicker } from "@/components/LocationPicker";
 import { frameCoordinates, type Coordinates } from "@/lib/coordinates";
 import { useServerFn } from "@tanstack/react-start";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { surveillanceQuery } from "@/lib/surveillance.functions";
+import { SurveillanceStats } from "@/components/SurveillanceStats";
+import { SystemStatus } from "@/components/SystemStatus";
 import type { DetectionResult } from "@/lib/detection.server";
 
 export const Route = createFileRoute("/")({
@@ -100,6 +103,7 @@ type SourceMode = "webcam" | "ipcam";
 function Index() {
   const analyze = useServerFn(analyzeSurveillanceFrame);
   const queryClient = useQueryClient();
+  const overviewQuery = useQuery(surveillanceQuery);
   const [deviceCoordinates, setDeviceCoordinates] = useState<Coordinates | null>(null);
   const [ipCoordinates, setIpCoordinates] = useState<Coordinates | null>(null);
   const coordinatesRef = useRef<{ webcam: Coordinates | null; ipcam: Coordinates | null }>({ webcam: null, ipcam: null });
@@ -218,7 +222,7 @@ function Index() {
       if (alert) {
         playAlertSound();
         setHistoryKey((k) => k + 1);
-        void queryClient.invalidateQueries({ queryKey: ["world-events"] });
+        void queryClient.invalidateQueries({ queryKey: ["surveillance"] });
       }
       setHistory((prev) =>
         [
@@ -372,7 +376,7 @@ function Index() {
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         <nav className="mb-5 flex flex-wrap gap-2" aria-label="Pages de VigillIA">
-          <Button variant="outline" size="sm" asChild><Link to="/carte"><Globe />Carte mondiale</Link></Button>
+          <Button variant="outline" size="sm" asChild><Link to="/carte"><Globe />Carte de surveillance</Link></Button>
           <Button variant="ghost" size="sm" asChild><Link to="/alertes"><AlertTriangle />Journal des alertes</Link></Button>
         </nav>
         {alertActive && (
@@ -666,6 +670,10 @@ function Index() {
           </div>
         </div>
 
+        <div className="mt-8 grid gap-8 border-t border-border pt-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          {overviewQuery.data ? <SurveillanceStats overview={overviewQuery.data.overview} /> : <section><h2 className="text-lg font-semibold">Statistiques</h2><p className="mt-3 text-sm text-muted-foreground">{overviewQuery.isError ? "Statistiques indisponibles." : "Chargement…"}</p></section>}
+          <SystemStatus overview={overviewQuery.data?.overview} error={overviewQuery.isError} syncing={overviewQuery.isFetching} />
+        </div>
         <p className="mt-8 text-center text-xs text-muted-foreground">
           VigilIA analyse une image toutes les {ANALYSIS_INTERVAL_MS / 1000} secondes pendant la
           surveillance. Les alertes sont données à titre indicatif et ne remplacent pas les systèmes

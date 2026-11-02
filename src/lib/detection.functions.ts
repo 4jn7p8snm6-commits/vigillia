@@ -14,7 +14,10 @@ export const analyzeSurveillanceFrame = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { analyzeFrame } = await import("./detection.server");
     const { getSettings, applyThreshold, recordDetection } = await import("./monitor.server");
-    const raw = await analyzeFrame(data.image, getRequest());
+    const { recordAIHealth } = await import("./system-health.server");
+    let raw;
+    try { raw = await analyzeFrame(data.image, getRequest()); await recordAIHealth(true); }
+    catch (error) { await recordAIHealth(false); throw error; }
     const settings = await getSettings();
     const result = applyThreshold(raw, settings.threshold);
     try {

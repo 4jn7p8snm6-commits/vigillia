@@ -15,11 +15,12 @@ export const saveMonitorSettings = createServerFn({ method: "POST" })
       enabled: z.boolean(),
       threshold: z.number().min(0.3).max(0.95),
       coordinates: coordinatesSchema.nullable().optional(),
+      zone_radius_m: z.number().int().min(10).max(10000).optional(),
     }),
   )
   .handler(async ({ data }) => {
     const { updateSettings } = await import("./monitor.server");
-    await updateSettings(data);
+    await updateSettings({ ...data, coordinates: data.coordinates ?? null });
     return { ok: true };
   });
 

@@ -23,14 +23,17 @@ export async function publicSettings() {
     last_run_at: s.last_run_at,
     last_status: s.last_status,
     coordinates: s.latitude !== null && s.longitude !== null ? { latitude: s.latitude, longitude: s.longitude } : null,
+    zone_radius_m: s.zone_radius_m,
   };
 }
 
-export async function updateSettings(v: { camera_url: string; location: string; enabled: boolean; threshold: number; coordinates?: Coordinates | null }) {
+export async function updateSettings(v: { camera_url: string; location: string; enabled: boolean; threshold: number; coordinates?: Coordinates | null; zone_radius_m?: number | undefined }) {
   const db = await admin();
+  const previous = await getSettings();
+  const cameraChanged = (previous.camera_url ?? "") !== v.camera_url;
   const { error } = await db
     .from("monitor_settings")
-    .update({ camera_url: v.camera_url || null, location: v.location || null, enabled: v.enabled, threshold: v.threshold, latitude: v.coordinates?.latitude ?? null, longitude: v.coordinates?.longitude ?? null, updated_at: new Date().toISOString() })
+    .update({ camera_url: v.camera_url || null, location: v.location || null, enabled: v.enabled, threshold: v.threshold, latitude: v.coordinates?.latitude ?? null, longitude: v.coordinates?.longitude ?? null, ...(v.zone_radius_m !== undefined ? { zone_radius_m: v.zone_radius_m } : {}), ...(cameraChanged ? { camera_ok: null, camera_checked_at: null } : {}), updated_at: new Date().toISOString() })
     .eq("id", 1);
   if (error) throw new Error("Impossible d'enregistrer les réglages.");
 }
@@ -95,6 +98,7 @@ export async function runTick(force = false) {
   if (!s.camera_url || (!s.enabled && !force)) return { status: "inactive" };
   const db = await admin();
   let status: string;
+  let cameraOk = false;
   try {
     const res = await fetch(s.camera_url, { headers: { "Cache-Control": "no-cache" }, signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`Caméra injoignable (code ${res.status})`);
@@ -102,17 +106,21 @@ export async function runTick(force = false) {
     if (!type.startsWith("image/")) throw new Error("L'adresse ne renvoie pas une image");
     const buf = new Uint8Array(await res.arrayBuffer());
     if (buf.byteLength > 5_000_000) throw new Error("Image trop lourde (max 5 Mo)");
+    cameraOk = true;
     let bin = "";
     for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
     const base64 = btoa(bin);
     const { analyzeFrame } = await import("./detection.server");
-    const raw = await analyzeFrame(base64, new Request("https://vigillia.lovable.app"));
+    const { recordAIHealth } = await import("./system-health.server");
+    let raw;
+    try { raw = await analyzeFrame(base64, new Request("https://vigillia.lovable.app")); await recordAIHealth(true); }
+    catch (error) { await recordAIHealth(false); throw error; }
     const r = applyThreshold(raw, s.threshold);
     await recordDetection(r, base64, s.location ?? undefined, "cloud", s.latitude !== null && s.longitude !== null ? { latitude: s.latitude, longitude: s.longitude } : undefined);
     status = r.incendie.detecte || r.inondation.detecte ? `Danger détecté : ${r.resume}` : `OK — ${r.resume}`;
   } catch (e) {
     status = `Erreur : ${e instanceof Error ? e.message : "inconnue"}`;
   }
-  await db.from("monitor_settings").update({ last_run_at: new Date().toISOString(), last_status: status.slice(0, 300) }).eq("id", 1);
+  await db.from("monitor_settings").update({ last_run_at: new Date().toISOString(), last_status: status.slice(0, 300), camera_ok: cameraOk, camera_checked_at: new Date().toISOString() }).eq("id", 1);
   return { status };
 }
