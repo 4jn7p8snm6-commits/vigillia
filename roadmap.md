@@ -1,4 +1,5 @@
 ## VigillIA
+- [ ] Créer la première campagne publicitaire de VigilIA : but, public, plateforme et budget à convenir.
 - [x] Remplacer la carte mondiale par une carte de surveillance : zones, caméras et incidents localisés.
 - [x] Ajouter les statistiques des incidents, types, fausses alertes identifiées et évolution.
 - [x] Afficher l’état réel du serveur, de l’IA, d’Internet, des caméras et la dernière synchronisation.

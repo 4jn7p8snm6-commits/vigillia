@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+/** Identifiant réel du modèle appelé côté serveur, et son nom affiché à l'utilisateur. */
+export const AI_MODEL_ID = "openai/gpt-6-astra";
+export const AI_MODEL_LABEL = "GPT-6 Astra";
+
 export const overviewSchema = z.object({
   synced_at: z.string(),
   stats: z.object({ total: z.number(), fires: z.number(), floods: z.number(), false_alerts: z.number(), unreviewed: z.number() }),
