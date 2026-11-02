@@ -29,9 +29,11 @@ export async function publicSettings() {
 
 export async function updateSettings(v: { camera_url: string; location: string; enabled: boolean; threshold: number; coordinates?: Coordinates | null; zone_radius_m?: number | undefined }) {
   const db = await admin();
+  const previous = await getSettings();
+  const cameraChanged = (previous.camera_url ?? "") !== v.camera_url;
   const { error } = await db
     .from("monitor_settings")
-    .update({ camera_url: v.camera_url || null, location: v.location || null, enabled: v.enabled, threshold: v.threshold, latitude: v.coordinates?.latitude ?? null, longitude: v.coordinates?.longitude ?? null, ...(v.zone_radius_m !== undefined ? { zone_radius_m: v.zone_radius_m } : {}), updated_at: new Date().toISOString() })
+    .update({ camera_url: v.camera_url || null, location: v.location || null, enabled: v.enabled, threshold: v.threshold, latitude: v.coordinates?.latitude ?? null, longitude: v.coordinates?.longitude ?? null, ...(v.zone_radius_m !== undefined ? { zone_radius_m: v.zone_radius_m } : {}), ...(cameraChanged ? { camera_ok: null, camera_checked_at: null } : {}), updated_at: new Date().toISOString() })
     .eq("id", 1);
   if (error) throw new Error("Impossible d'enregistrer les réglages.");
 }

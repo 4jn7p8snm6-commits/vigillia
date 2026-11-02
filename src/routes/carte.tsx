@@ -8,7 +8,7 @@ import { SurveillanceStats } from "@/components/SurveillanceStats";
 import { SystemStatus } from "@/components/SystemStatus";
 import type { WorldEvent } from "@/lib/world-events";
 
-const SurveillanceMap = lazy(() => import("@/components/WorldMap.client"));
+const SurveillanceMap = lazy(() => import("@/components/SurveillanceMap"));
 export const Route = createFileRoute("/carte")({
   head: () => ({ meta: [
     { title: "Carte de surveillance — VigillIA" },
