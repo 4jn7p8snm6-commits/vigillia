@@ -10,7 +10,8 @@
 <!-- LOVABLE:END -->
 
 - Push senders include structured location, severity and event timestamp; the service worker formats these for display outside the app and accepts legacy message bodies to preserve existing subscriptions.
-- The map combines read-only NASA EONET observations and a public projection of geolocated real detections; only rounded coordinates, event kind and timestamp are public, never camera names, URLs or photos. Map reads never trigger notifications.
+- The surveillance map reads only real detection projections and configured camera zones; only rounded coordinates, event kind, timestamp and aggregate status/statistics are public, never camera names, URLs or photos. NASA observations do not feed surveillance statistics or map incidents.
+- Surveillance aggregates are computed in a read-only database function; health indicators expire and reflect actual analysis/camera checks, never configured credentials alone, so dashboards do not imply untested availability.
 - Device geolocation requires explicit consent and applies only to device-camera frames; remote camera coordinates are configured separately, and uploads and demos never inherit device coordinates to avoid false locations.
 - Leaflet is loaded lazily behind ClientOnly; shared event data stays browser-safe to prevent SSR access to browser globals.
 - Demo images use a separate AI function that never records real detections or sends notifications, so examples cannot be mistaken for camera events.

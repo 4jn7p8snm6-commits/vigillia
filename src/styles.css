@@ -71,6 +71,8 @@
 .world-map { height: 100%; width: 100%; background: var(--map-ocean); z-index: 0; }
 .world-map .map-fire { stroke: var(--danger); fill: var(--danger); fill-opacity: .7; stroke-width: 2; }
 .world-map .map-flood { stroke: var(--primary); fill: var(--primary); fill-opacity: .7; stroke-width: 2; }
+.world-map .map-camera { stroke: var(--foreground); fill: var(--safe); fill-opacity: 1; stroke-width: 2; }
+.world-map .map-zone { stroke: var(--safe); fill: var(--safe); fill-opacity: .1; stroke-width: 2; }
 .world-map .leaflet-popup-content-wrapper, .world-map .leaflet-popup-tip { background: var(--card); color: var(--foreground); }
 .world-map .leaflet-popup-content a { color: var(--primary); }
 
