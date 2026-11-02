@@ -77,6 +77,7 @@ export type Database = {
       detections: {
         Row: {
           created_at: string
+          false_alert: boolean | null
           fire: boolean
           fire_conf: number
           flood: boolean
@@ -92,6 +93,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          false_alert?: boolean | null
           fire?: boolean
           fire_conf?: number
           flood?: boolean
@@ -107,6 +109,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          false_alert?: boolean | null
           fire?: boolean
           fire_conf?: number
           flood?: boolean
@@ -124,6 +127,8 @@ export type Database = {
       }
       monitor_settings: {
         Row: {
+          camera_checked_at: string | null
+          camera_ok: boolean | null
           camera_url: string | null
           cron_token: string
           enabled: boolean
@@ -135,8 +140,11 @@ export type Database = {
           longitude: number | null
           threshold: number
           updated_at: string
+          zone_radius_m: number
         }
         Insert: {
+          camera_checked_at?: string | null
+          camera_ok?: boolean | null
           camera_url?: string | null
           cron_token?: string
           enabled?: boolean
@@ -148,8 +156,11 @@ export type Database = {
           longitude?: number | null
           threshold?: number
           updated_at?: string
+          zone_radius_m?: number
         }
         Update: {
+          camera_checked_at?: string | null
+          camera_ok?: boolean | null
           camera_url?: string | null
           cron_token?: string
           enabled?: boolean
@@ -161,6 +172,7 @@ export type Database = {
           longitude?: number | null
           threshold?: number
           updated_at?: string
+          zone_radius_m?: number
         }
         Relationships: []
       }
@@ -191,12 +203,30 @@ export type Database = {
         }
         Relationships: []
       }
+      system_health: {
+        Row: {
+          ai_checked_at: string | null
+          ai_ok: boolean | null
+          id: number
+        }
+        Insert: {
+          ai_checked_at?: string | null
+          ai_ok?: boolean | null
+          id: number
+        }
+        Update: {
+          ai_checked_at?: string | null
+          ai_ok?: boolean | null
+          id?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      surveillance_overview: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
