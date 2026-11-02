@@ -19,7 +19,7 @@ export const saveMonitorSettings = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { updateSettings } = await import("./monitor.server");
-    await updateSettings(data);
+    await updateSettings({ ...data, coordinates: data.coordinates ?? null });
     return { ok: true };
   });
 

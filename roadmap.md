@@ -1,4 +1,7 @@
 ## VigillIA
+- [ ] Remplacer la carte mondiale par une carte de surveillance : zones, caméras et incidents localisés.
+- [ ] Ajouter les statistiques des incidents, types, fausses alertes identifiées et évolution.
+- [ ] Afficher l’état réel du serveur, de l’IA, d’Internet, des caméras et la dernière synchronisation.
 - [ ] Ajouter à la carte les incendies et inondations détectés avec localisation consentie, sans géolocaliser les démonstrations.
 - [x] Carte mondiale d'incendies et d'inondations (NASA EONET), centrée sur Grande Canarie.
 - [x] Publication des derniers ajouts (carte, journal des alertes, surveillance Cloud, seuil, photos).
