@@ -1,10 +1,11 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { NoObjectGeneratedError, Output, streamText } from "ai";
 import { z } from "zod";
+import { AI_MODEL_ID } from "./surveillance";
 
 const LOVABLE_AIG_RUN_ID_HEADER = "X-Lovable-AIG-Run-ID";
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1";
-const MODEL = "openai/gpt-6-astra";
+const MODEL = AI_MODEL_ID;
 
 function createRunIdFetch(initialRunId?: string) {
   let runId = initialRunId?.trim() || undefined;
