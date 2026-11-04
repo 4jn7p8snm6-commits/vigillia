@@ -30,6 +30,7 @@
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
   --color-warning: var(--warning);
+  --color-success: var(--success);
   --color-warning-foreground: var(--warning-foreground);
   --color-safe: var(--safe);
   --color-safe-foreground: var(--safe-foreground);
@@ -59,6 +60,7 @@
   --danger: oklch(0.58 0.23 27);
   --danger-foreground: oklch(0.98 0.005 250);
   --warning: oklch(0.78 0.16 75);
+  --success: oklch(0.7 0.16 150);
   --warning-foreground: oklch(0.2 0.03 75);
   --safe: oklch(0.7 0.17 155);
   --safe-foreground: oklch(0.15 0.03 155);
