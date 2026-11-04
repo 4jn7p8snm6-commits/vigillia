@@ -36,6 +36,13 @@
       "when": 1793637209544,
       "tag": "0004_surveillance_overview",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793781379562,
+      "tag": "0005_team_roles",
+      "breakpoints": true
     }
   ]
 }
