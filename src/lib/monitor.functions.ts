@@ -33,3 +33,11 @@ export const getDetections = createServerFn({ method: "GET" }).handler(async () 
   const { listDetections } = await import("./monitor.server");
   return listDetections();
 });
+
+export const reviewDetectionFn = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ id: z.string().uuid(), false_alert: z.boolean().nullable() }))
+  .handler(async ({ data }) => {
+    const { reviewDetection } = await import("./monitor.server");
+    await reviewDetection(data.id, data.false_alert);
+    return { ok: true };
+  });

@@ -124,3 +124,10 @@ export async function runTick(force = false) {
   await db.from("monitor_settings").update({ last_run_at: new Date().toISOString(), last_status: status.slice(0, 300), camera_ok: cameraOk, camera_checked_at: new Date().toISOString() }).eq("id", 1);
   return { status };
 }
+
+/** Revue humaine : true = fausse alerte, false = vraie alerte, null = non revue. */
+export async function reviewDetection(id: string, falseAlert: boolean | null) {
+  const db = await admin();
+  const { error } = await db.from("detections").update({ false_alert: falseAlert }).eq("id", id);
+  if (error) throw new Error("Impossible d'enregistrer la revue.");
+}
