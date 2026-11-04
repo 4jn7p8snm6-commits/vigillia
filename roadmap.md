@@ -11,3 +11,9 @@
 - [ ] Vérifier l'affichage et les interactions sur téléphone et iPad.
 - [ ] Tester la surveillance Cloud programmée dès qu'une caméra IP sera connectée.
 - [ ] Alertes email : bloquées tant qu'aucun domaine d'expédition n'est configuré.
+- [x] Revue vraie/fausse alerte et fiabilité mesurée dans le journal.
+- [x] Page cadre d'utilisation et confidentialité.
+- [ ] Comptes d'équipe et rôles (bloque l'accès public aux réglages) : attend le choix des personnes et du mode de connexion.
+- [ ] Prise en charge des alertes et escalade (après les comptes).
+- [ ] Banc d'essai sur jeu d'images de référence.
+- [ ] Alertes officielles AEMET sur la carte.
