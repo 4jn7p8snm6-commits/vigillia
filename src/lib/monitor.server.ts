@@ -126,8 +126,8 @@ export async function runTick(force = false) {
 }
 
 /** Revue humaine : true = fausse alerte, false = vraie alerte, null = non revue. */
-export async function reviewDetection(id: string, falseAlert: boolean | null) {
+export async function reviewDetection(id: string, falseAlert: boolean | null, reviewer: string) {
   const db = await admin();
-  const { error } = await db.from("detections").update({ false_alert: falseAlert }).eq("id", id);
+  const { error } = await db.from("detections").update({ false_alert: falseAlert, reviewed_by: falseAlert === null ? null : reviewer, reviewed_at: falseAlert === null ? null : new Date().toISOString() }).eq("id", id);
   if (error) throw new Error("Impossible d'enregistrer la revue.");
 }
