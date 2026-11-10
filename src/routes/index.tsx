@@ -10,7 +10,7 @@ import {
   AlertTriangle,
   Loader2,
   Trash2,
-  Globe,
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { analyzeSurveillanceFrame } from "@/lib/detection.functions";
@@ -376,7 +376,6 @@ function Index() {
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         <nav className="mb-5 flex flex-wrap gap-2" aria-label="Pages de VigillIA">
-          <Button variant="outline" size="sm" asChild><Link to="/carte"><Globe />Carte de surveillance</Link></Button>
           <Button variant="ghost" size="sm" asChild><Link to="/alertes"><AlertTriangle />Journal des alertes</Link></Button>
           <Button variant="ghost" size="sm" asChild><Link to="/cadre">Cadre et confidentialité</Link></Button>
         </nav>
