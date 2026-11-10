@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AlertesRouteImport } from './routes/alertes'
 import { Route as CadreRouteImport } from './routes/cadre'
-import { Route as CarteRouteImport } from './routes/carte'
 import { Route as ApiPublicSurveillanceTickRouteImport } from './routes/api/public/surveillance-tick'
 
 const IndexRoute = IndexRouteImport.update({
@@ -30,11 +29,6 @@ const CadreRoute = CadreRouteImport.update({
   path: '/cadre',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CarteRoute = CarteRouteImport.update({
-  id: '/carte',
-  path: '/carte',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicSurveillanceTickRoute =
   ApiPublicSurveillanceTickRouteImport.update({
     id: '/api/public/surveillance-tick',
@@ -46,14 +40,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alertes': typeof AlertesRoute
   '/cadre': typeof CadreRoute
-  '/carte': typeof CarteRoute
   '/api/public/surveillance-tick': typeof ApiPublicSurveillanceTickRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alertes': typeof AlertesRoute
   '/cadre': typeof CadreRoute
-  '/carte': typeof CarteRoute
   '/api/public/surveillance-tick': typeof ApiPublicSurveillanceTickRoute
 }
 export interface FileRoutesById {
@@ -61,29 +53,20 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/alertes': typeof AlertesRoute
   '/cadre': typeof CadreRoute
-  '/carte': typeof CarteRoute
   '/api/public/surveillance-tick': typeof ApiPublicSurveillanceTickRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    '/' | '/alertes' | '/cadre' | '/carte' | '/api/public/surveillance-tick'
+  fullPaths: '/' | '/alertes' | '/cadre' | '/api/public/surveillance-tick'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/alertes' | '/cadre' | '/carte' | '/api/public/surveillance-tick'
-  id:
-    | '__root__'
-    | '/'
-    | '/alertes'
-    | '/cadre'
-    | '/carte'
-    | '/api/public/surveillance-tick'
+  to: '/' | '/alertes' | '/cadre' | '/api/public/surveillance-tick'
+  id: '__root__' | '/' | '/alertes' | '/cadre' | '/api/public/surveillance-tick'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertesRoute: typeof AlertesRoute
   CadreRoute: typeof CadreRoute
-  CarteRoute: typeof CarteRoute
   ApiPublicSurveillanceTickRoute: typeof ApiPublicSurveillanceTickRoute
 }
 
@@ -110,13 +93,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadreRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/carte': {
-      id: '/carte'
-      path: '/carte'
-      fullPath: '/carte'
-      preLoaderRoute: typeof CarteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/surveillance-tick': {
       id: '/api/public/surveillance-tick'
       path: '/api/public/surveillance-tick'
@@ -131,7 +107,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertesRoute: AlertesRoute,
   CadreRoute: CadreRoute,
-  CarteRoute: CarteRoute,
   ApiPublicSurveillanceTickRoute: ApiPublicSurveillanceTickRoute,
 }
 export const routeTree = rootRouteImport
