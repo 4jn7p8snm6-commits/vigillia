@@ -48,7 +48,7 @@ export function LanguageToggle() {
       if (list.length) setBusy(true);
       for (let i = 0; i < list.length; i += 100) {
         const chunk = list.slice(i, i + 100);
-        try { const { translations } = await translate({ data: { texts: chunk } }); chunk.forEach((s, j) => { cache[s] = translations[j]; }); }
+        try { const { translations } = await translate({ data: { texts: chunk } }); chunk.forEach((s, j) => { cache[s] = translations[j] ?? s; }); }
         catch { /* keep French on failure */ }
       }
       localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
