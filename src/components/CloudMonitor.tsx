@@ -69,7 +69,6 @@ export function CloudMonitor() {
       </div>
       {msg && <p className="text-xs text-muted-foreground">{msg}</p>}
       {s.last_run_at && <p className="text-[11px] text-muted-foreground">Dernier passage : {new Date(s.last_run_at).toLocaleString("fr-FR")} — {s.last_status}</p>}
-      <Link to="/alertes" className="block text-xs font-medium text-primary underline">Voir toutes les alertes avec photos →</Link>
     </div>
   );
 }
