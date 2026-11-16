@@ -1,6 +1,5 @@
 # Vigillia
 
-Cree moi une IA caapble de detecter les incendies et les inondations
 
 This project was built with [Lovable](https://lovable.dev).
 
